@@ -3,7 +3,6 @@
 {
   stdenv,
   lib,
-  fetchpatch,
   fetchFromGitHub,
   buildPackages,
   pkgsCross,
@@ -33,11 +32,10 @@ let
         ];
 
         depsBuildBuild = [
-          #buildPackages.gcc49
-          buildPackages.gcc
+          buildPackages.gcc49
         ]
         ++ lib.optional (stdenv.buildPlatform != stdenv.hostPlatform) buildPackages.stdenv.cc
-        ++ lib.optional (!stdenv.isAarch64) pkgsCross.aarch64-multiplatform.buildPackages.gcc;
+        ++ lib.optional (!stdenv.isAarch64) pkgsCross.aarch64-multiplatform.buildPackages.gcc49;
 
         makeFlags = [
           "CROSS_COMPILE=${stdenv.cc.targetPrefix}"
@@ -85,16 +83,6 @@ buildHardkernelFirmware {
   preBuild = ''
     substituteInPlace ./arch/arm/cpu/armv8/g12a/firmware/scp_task/Makefile \
       --replace "CROSS_COMPILE" "CROSS_COMPILE_32"
-    substituteInPlace ./Makefile \
-      --replace "KBUILD_CFLAGS += -Werror" ""
-
-    substituteInPlace ./common/bootm.c \
-      --replace "unsigned long long dtbo_mem_addr = NULL;" "unsigned long long dtbo_mem_addr = 0;"
-
-    substituteInPlace ./arch/arm/cpu/armv8/g12a/firmware/acs/Makefile \
-      --replace "LDFLAGS			+=	--fatal-warnings -O1" "LDFLAGS			+=	-O1"
-
-    touch ./include/linux/compiler-gcc14.h
   ''
   + preBuild;
 
